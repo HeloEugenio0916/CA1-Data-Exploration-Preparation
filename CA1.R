@@ -218,3 +218,135 @@ ggplot(students, aes(x = Curricular.units.1st.sem..grade.,
 # These results show relationships, not direct causes.
 
 
+#===============================================================================
+# 3. ENCODING AND PCA
+#===============================================================================
+  # 3.1 Variable Selection
+
+# Checking all variables and their data types
+str(students)
+
+# Select six variables for PCA
+pca_data <- students[, c(
+  "Age.at.enrollment",
+  "Admission.grade",
+  "Curricular.units.1st.sem..grade.",
+  "Curricular.units.2nd.sem..grade.",
+  "Scholarship.holder",
+  "Tuition.fees.up.to.date"
+)]
+
+# Checking the selected data
+str(pca_data)
+head(pca_data)
+
+#-------------------------------------------------------------------------------
+  # 3.2 Categorical Encoding
+
+# Change scholarship values into yes or no 
+scholarship <- factor(students$Scholarship.holder,
+                      levels = c(0, 1),
+                      labels = c("No", "Yes"))
+
+# Create a dummy variable: 1 = Yes, 0 = No
+pca_data$Scholarship.encoded <- as.integer(scholarship == "Yes")
+
+# Remove the original scholarship column
+pca_data$Scholarship.holder <- NULL
+
+# Check the new values 
+table(scholarship, pca_data$Scholarship.encoded)
+
+#-------------------------------------------------------------------------------
+  # 3.3 Principal Component Analysis (PCA)
+
+# Check for missing values
+sum(is.na(pca_data))
+
+# Run PCA and scale the variables
+res.pca <- prcomp(pca_data, scale = TRUE)
+
+# Show the PCA results
+summary(res.pca)
+
+# PC1 explains 36.11% of the total variance.
+# The first three components explain 70.18% together.
+
+#-------------------------------------------------------------------------------
+  # 3.4 PCA Scree Plot
+
+library(factoextra)
+
+# Show how much variance each component explains 
+fviz_eig(res.pca,
+         barfill = "#F5C99B",
+         barcolor = "#F5C99B")
+
+# PC1 explains the most variance (36.11%).
+# The first four components explain 84.22% together.
+# Four components were selected to keep most of the variation.
+
+#-------------------------------------------------------------------------------
+  # 3.5 PCA Variables Plot
+
+# Make variable names easier to read
+rownames(res.pca$rotation) <- c(
+  "Age",
+  "Admission Grade",
+  "Semester 1 Grade",
+  "Semester 2 Grade",
+  "Tuition Fees",
+  "Scholarship"
+)
+
+# Show relationships between variables
+fviz_pca_var(
+  res.pca,
+  col.var = "contrib",
+  gradient.cols = c("#73C8D0", "#F6D58A", "#F3A6B7"),
+  repel = TRUE,
+  labelsize = 3
+) +
+  labs(
+    title = "Relationships Between PCA Variables",
+    x = "PC1 (36.11%)",
+    y = "PC2 (17.61%)"
+  )
+
+# Shows relationships between the six variables.
+# Semester 1 and Semester 2 grades are closely related.
+# PC1 and PC2 explain 53.72% of the variation.
+
+#-------------------------------------------------------------------------------
+  # 3.6 PCA Individuals Plot
+
+# Show students in the PCA space
+fviz_pca_ind(
+  res.pca,
+  geom = "point",
+  col.ind = "cos2",
+  gradient.cols = c("#73C8D0", "#F6D58A", "#F3A6B7")
+) +
+  labs(
+    title = "Student Distribution in PCA",
+    x = "PC1 (36.11%)",
+    y = "PC2 (17.61%)"
+  )
+
+# Each dot represents a student.
+# Students are spread across the graph.
+# Colours show how well each student is represented.
+# PC1 and PC2 explain 53.72% of the variance.
+
+#-------------------------------------------------------------------------------
+  # 3.7 PCA Variable Contributions
+
+# Check which variables contribute most to PCA
+res.var <- get_pca_var(res.pca)
+
+round(res.var$contrib[, 1:4], 2)
+
+# Semester grades contribute most to PC1.
+# Age and scholarship contribute most to PC2.
+# Admission grade contributes most to PC3.
+# Tuition fees and scholarship contribute most to PC4.
