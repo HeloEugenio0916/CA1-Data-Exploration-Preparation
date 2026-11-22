@@ -270,7 +270,7 @@ res.pca <- prcomp(pca_data, scale = TRUE)
 summary(res.pca)
 
 # PC1 explains 36.11% of the total variance.
-# The first three components explain 70.18% together.
+# The first four components explain 84.22% together.
 
 #-------------------------------------------------------------------------------
   # 3.4 PCA Scree Plot
@@ -350,3 +350,4 @@ round(res.var$contrib[, 1:4], 2)
 # Age and scholarship contribute most to PC2.
 # Admission grade contributes most to PC3.
 # Tuition fees and scholarship contribute most to PC4.
+# PC1 mainly reflects semester grades, while PC2 reflects age and scholarship status.
